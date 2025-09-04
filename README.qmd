@@ -23,13 +23,26 @@ In this tutorial, we'll explore Simpson's Paradox using the beloved Palmer Stati
 options(repos = c(CRAN = "https://cran.rstudio.com/"))
 
 # Install required packages if not already installed
-if (!require(patchwork, quietly = TRUE)) {
-  install.packages("patchwork")
-  library(patchwork)
-}
+# Try to load patchwork, if it fails, we'll use an alternative approach
+suppressWarnings({
+  if (!require(patchwork, quietly = TRUE)) {
+    install.packages("patchwork")
+  }
+})
 
+# Load patchwork with error handling
+patchwork_available <- tryCatch({
+  library(patchwork)
+  TRUE
+}, error = function(e) {
+  cat("Note: patchwork not available, using alternative approach\n")
+  FALSE
+})
+if (!require(palmerpenguins, quietly = TRUE)) {
+  install.packages("palmerpenguins")
+  library(palmerpenguins)
+}
 library(ggplot2)
-library(palmerpenguins)
 data(penguins)
 ```
 
@@ -107,15 +120,59 @@ This is Simpson's Paradox in action. The species variable is a **confounding var
 
 ### C. Side-by-Side Comparison
 
-**🎯 Your Task:** Use Cursor's AI assistant to create a compelling side-by-side comparison plot!
+**🎯 Side-by-Side Comparison: The Power of Simpson's Paradox**
 
-**Instructions:**
-1. Ask Cursor: *"Create a side-by-side comparison plot using patchwork that combines plot1 and plot2 with a title, subtitle, and caption explaining Simpson's Paradox"*
-2. The plot should clearly show the contrast between the overall relationship and the species-specific relationships
-3. Use `theme_minimal(16)` for consistency
-4. **Replace these instructions with the actual plot code that Cursor generates**
-5. **Render the README.md file** using `quarto render README.qmd`
-6. Make sure to sync your changes to your GitHub folder for grading!
+```{r}
+#| message: false
+#| warning: false
+#| fig-cap: "Simpson's Paradox: When the whole story differs from the sum of its parts"
+
+# Create the side-by-side comparison using patchwork
+if (patchwork_available) {
+  # Use patchwork if available
+  comparison_plot <- plot1 + plot2 +
+    plot_annotation(
+      title = "Simpson's Paradox: The Deceptive Nature of Aggregated Data",
+      subtitle = "Left: Overall relationship suggests positive correlation | Right: Species-specific analysis reveals negative correlation",
+      caption = "This visualization demonstrates how ignoring grouping variables can lead to completely opposite conclusions about the same dataset. The red trendline in both plots shows the overall relationship, while the colored lines in the right plot reveal the true within-species relationships.",
+      theme = theme_minimal(16) +
+        theme(
+          plot.title = element_text(size = 18, face = "bold", hjust = 0.5),
+          plot.subtitle = element_text(size = 14, hjust = 0.5, margin = margin(b = 20)),
+          plot.caption = element_text(size = 12, hjust = 0, face = "italic", margin = margin(t = 20)),
+          plot.caption.position = "plot"
+        )
+    )
+} else {
+  # Fallback to gridExtra if patchwork is not available
+  if (!require(gridExtra, quietly = TRUE)) {
+    install.packages("gridExtra")
+    library(gridExtra)
+  }
+  
+  # Add titles to individual plots
+  plot1_with_title <- plot1 + 
+    labs(title = "Overall Relationship",
+         subtitle = "Ignoring species differences")
+  
+  plot2_with_title <- plot2 + 
+    labs(title = "Species-Specific Relationships",
+         subtitle = "The truth revealed when we consider species")
+  
+  # Create side-by-side comparison
+  comparison_plot <- grid.arrange(
+    plot1_with_title, 
+    plot2_with_title, 
+    ncol = 2,
+    top = textGrob("Simpson's Paradox: The Deceptive Nature of Aggregated Data", 
+                   gp = gpar(fontsize = 18, fontface = "bold")),
+    bottom = textGrob("This visualization demonstrates how ignoring grouping variables can lead to completely opposite conclusions about the same dataset.\nThe red trendline in both plots shows the overall relationship, while the colored lines in the right plot reveal the true within-species relationships.", 
+                      gp = gpar(fontsize = 12, fontface = "italic"), 
+                      x = 0, hjust = 0)
+  )
+}
+
+comparison_plot
 
 **What you should see:** A powerful visualization that makes Simpson's Paradox crystal clear - the same data telling two completely different stories depending on whether we consider the species grouping variable.
 

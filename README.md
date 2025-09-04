@@ -33,7 +33,7 @@ suppressWarnings({
 
 
     The downloaded binary packages are in
-        /var/folders/r0/lvgnmfm51wv5cw4b4whl7v2r0000gn/T//RtmpjSPiY6/downloaded_packages
+        /var/folders/r0/lvgnmfm51wv5cw4b4whl7v2r0000gn/T//Rtmp48Wbgw/downloaded_packages
 
 ``` r
 # Load patchwork with error handling
@@ -53,13 +53,6 @@ if (!require(palmerpenguins, quietly = TRUE)) {
   install.packages("palmerpenguins")
   library(palmerpenguins)
 }
-```
-
-
-    The downloaded binary packages are in
-        /var/folders/r0/lvgnmfm51wv5cw4b4whl7v2r0000gn/T//RtmpjSPiY6/downloaded_packages
-
-``` r
 library(ggplot2)
 data(penguins)
 ```
@@ -144,47 +137,67 @@ relationship when we aggregate the data.
 
 **🎯 Side-by-Side Comparison: The Power of Simpson’s Paradox**
 
-\#\| message: false \#\| warning: false \#\| fig-cap: “Simpson’s
-Paradox: When the whole story differs from the sum of its parts”
-
+``` r
 # Create the side-by-side comparison using patchwork
+if (patchwork_available) {
+  # Use patchwork if available
+  comparison_plot <- plot1 + plot2 +
+    plot_annotation(
+      title = "Simpson's Paradox: The Deceptive Nature of Aggregated Data",
+      subtitle = "Left: Overall relationship suggests positive correlation | Right: Species-specific analysis reveals negative correlation",
+      caption = "This visualization demonstrates how ignoring grouping variables can lead to completely opposite conclusions about the same dataset. The red trendline in both plots shows the overall relationship, while the colored lines in the right plot reveal the true within-species relationships.",
+      theme = theme_minimal(16) +
+        theme(
+          plot.title = element_text(size = 18, face = "bold", hjust = 0.5),
+          plot.subtitle = element_text(size = 14, hjust = 0.5, margin = margin(b = 20)),
+          plot.caption = element_text(size = 12, hjust = 0, face = "italic", margin = margin(t = 20)),
+          plot.caption.position = "plot"
+        )
+    )
+} else {
+  # Fallback to gridExtra if patchwork is not available
+  if (!require(gridExtra, quietly = TRUE)) {
+    install.packages("gridExtra")
+    library(gridExtra)
+  }
+  library(grid)  # Required for textGrob and gpar functions
+  
+  # Add titles to individual plots
+  plot1_with_title <- plot1 + 
+    labs(title = "Overall Relationship",
+         subtitle = "Ignoring species differences")
+  
+  plot2_with_title <- plot2 + 
+    labs(title = "Species-Specific Relationships",
+         subtitle = "The truth revealed when we consider species")
+  
+  # Create side-by-side comparison
+  comparison_plot <- grid.arrange(
+    plot1_with_title, 
+    plot2_with_title, 
+    ncol = 2,
+    top = textGrob("Simpson's Paradox: The Deceptive Nature of Aggregated Data", 
+                   gp = gpar(fontsize = 18, fontface = "bold")),
+    bottom = textGrob("This visualization demonstrates how ignoring grouping variables can lead to completely opposite conclusions about the same dataset.\nThe red trendline in both plots shows the overall relationship, while the colored lines in the right plot reveal the true within-species relationships.", 
+                      gp = gpar(fontsize = 12, fontface = "italic"), 
+                      x = 0, hjust = 0)
+  )
+}
+```
 
-if (patchwork_available) { \# Use patchwork if available comparison_plot
-\<- plot1 + plot2 + plot_annotation( title = “Simpson’s Paradox: The
-Deceptive Nature of Aggregated Data”, subtitle = “Left: Overall
-relationship suggests positive correlation \| Right: Species-specific
-analysis reveals negative correlation”, caption = “This visualization
-demonstrates how ignoring grouping variables can lead to completely
-opposite conclusions about the same dataset. The red trendline in both
-plots shows the overall relationship, while the colored lines in the
-right plot reveal the true within-species relationships.”, theme =
-theme_minimal(16) + theme( plot.title = element_text(size = 18, face =
-“bold”, hjust = 0.5), plot.subtitle = element_text(size = 14, hjust =
-0.5, margin = margin(b = 20)), plot.caption = element_text(size = 12,
-hjust = 0, face = “italic”, margin = margin(t = 20)),
-plot.caption.position = “plot” ) ) } else { \# Fallback to gridExtra if
-patchwork is not available if (!require(gridExtra, quietly = TRUE)) {
-install.packages(“gridExtra”) library(gridExtra) }
+![Simpson’s Paradox: When the whole story differs from the sum of its
+parts](README_files/figure-commonmark/unnamed-chunk-3-1.png)
 
-\# Add titles to individual plots plot1_with_title \<- plot1 +
-labs(title = “Overall Relationship”, subtitle = “Ignoring species
-differences”)
-
-plot2_with_title \<- plot2 + labs(title = “Species-Specific
-Relationships”, subtitle = “The truth revealed when we consider
-species”)
-
-\# Create side-by-side comparison comparison_plot \<- grid.arrange(
-plot1_with_title, plot2_with_title, ncol = 2, top = textGrob(“Simpson’s
-Paradox: The Deceptive Nature of Aggregated Data”, gp = gpar(fontsize =
-18, fontface = “bold”)), bottom = textGrob(“This visualization
-demonstrates how ignoring grouping variables can lead to completely
-opposite conclusions about the same dataset.red trendline in both plots
-shows the overall relationship, while the colored lines in the right
-plot reveal the true within-species relationships.”, gp = gpar(fontsize
-= 12, fontface = “italic”), x = 0, hjust = 0) ) }
-
+``` r
 comparison_plot
+```
+
+    TableGrob (3 x 2) "arrange": 4 grobs
+      z     cells    name                grob
+    1 1 (2-2,1-1) arrange      gtable[layout]
+    2 2 (2-2,2-2) arrange      gtable[layout]
+    3 3 (1-1,1-2) arrange text[GRID.text.230]
+    4 4 (3-3,1-2) arrange text[GRID.text.231]
 
 **What you should see:** A powerful visualization that makes Simpson’s
 Paradox crystal clear - the same data telling two completely different
